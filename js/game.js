@@ -153,7 +153,19 @@ class MemoryGame {
 
     // Flip a card
     flipCard(index, isLocal = false) {
+        // Safety check - ensure board is initialized
+        if (!this.boardElement || !this.boardElement.children || this.boardElement.children.length === 0) {
+            console.warn('flipCard called before board initialized');
+            return;
+        }
+
         const cardElement = this.boardElement.children[index];
+
+        // Validate cardElement exists
+        if (!cardElement) {
+            console.error('Card element not found at index:', index);
+            return;
+        }
 
         if (!cardElement.classList.contains('flipped')) {
             cardElement.classList.add('flipped');
@@ -206,6 +218,14 @@ class MemoryGame {
         const firstCardElement = this.boardElement.children[firstIndex];
         const secondCardElement = this.boardElement.children[secondIndex];
 
+        // Safety check for undefined elements
+        if (!firstCardElement || !secondCardElement) {
+            console.error('handleMatch: Invalid card elements', firstIndex, secondIndex);
+            this.flippedCards = [];
+            this.isProcessing = false;
+            return;
+        }
+
         firstCardElement.classList.add('matched');
         secondCardElement.classList.add('matched');
 
@@ -234,8 +254,11 @@ class MemoryGame {
             window.multiplayerManager.syncMatch(this.cards[firstIndex].pairId, this.scores);
         }
 
-        // Check if game is over
-        if (this.matchedPairs.length === this.cardEmojis.length) {
+        // Check if game is over - use actual card count
+        const totalPairs = this.cards.length / 2;
+        console.log('Game end check:', this.matchedPairs.length, '/', totalPairs);
+        if (this.matchedPairs.length >= totalPairs) {
+            console.log('Game ending!');
             this.endGame();
             return;
         }
@@ -502,7 +525,9 @@ class MemoryGame {
 
         // Check game end - use actual pairs count
         const totalPairs = this.cards.length / 2;
-        if (this.matchedPairs.length === totalPairs) {
+        console.log('Opponent match update - game end check:', this.matchedPairs.length, '/', totalPairs);
+        if (this.matchedPairs.length >= totalPairs) {
+            console.log('Game ending from match update!');
             this.endGame();
         }
     }

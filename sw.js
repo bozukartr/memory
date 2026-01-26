@@ -1,7 +1,7 @@
 // Service Worker for Memory Match PWA
 // ====================================
 
-const CACHE_NAME = 'memory-match-v2';
+const CACHE_NAME = 'memory-match-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -9,6 +9,7 @@ const ASSETS_TO_CACHE = [
     './js/firebase-config.js',
     './js/sound.js',
     './js/game.js',
+    './js/ai.js',
     './js/multiplayer.js',
     './js/app.js',
     './manifest.json',

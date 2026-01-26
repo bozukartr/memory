@@ -70,7 +70,11 @@
             </div>
 
             <div class="menu-buttons">
-                <button id="btn-create-room" class="btn btn-primary">
+                <button id="btn-single-player" class="btn btn-primary">
+                    <span class="btn-icon">🤖</span>
+                    <span class="btn-text">Tek Kişilik</span>
+                </button>
+                <button id="btn-create-room" class="btn btn-secondary">
                     <span class="btn-icon">🎮</span>
                     <span class="btn-text">Oda Oluştur</span>
                 </button>
@@ -119,8 +123,70 @@
                 </div>
             </div>
 
+            <!-- Grid Size Selector -->
+            <div class="grid-selector" id="grid-selector">
+                <p class="grid-selector-title">Oyun Alanı Seç</p>
+                <div class="grid-options">
+                    <button class="grid-option" data-size="4x4">
+                        <span class="grid-size">4×4</span>
+                        <span class="grid-cards">16 kart</span>
+                        <div class="grid-votes">
+                            <span class="vote host-vote" id="vote-4x4-host"></span>
+                            <span class="vote guest-vote" id="vote-4x4-guest"></span>
+                        </div>
+                    </button>
+                    <button class="grid-option" data-size="6x6">
+                        <span class="grid-size">6×6</span>
+                        <span class="grid-cards">36 kart</span>
+                        <div class="grid-votes">
+                            <span class="vote host-vote" id="vote-6x6-host"></span>
+                            <span class="vote guest-vote" id="vote-6x6-guest"></span>
+                        </div>
+                    </button>
+                    <button class="grid-option" data-size="8x8">
+                        <span class="grid-size">8×8</span>
+                        <span class="grid-cards">64 kart</span>
+                        <div class="grid-votes">
+                            <span class="vote host-vote" id="vote-8x8-host"></span>
+                            <span class="vote guest-vote" id="vote-8x8-guest"></span>
+                        </div>
+                    </button>
+                </div>
+                <p class="grid-match-status" id="grid-match-status">Boyut seçin</p>
+            </div>
+
             <div class="waiting-info">
                 <p>Arkadaşına oda kodunu gönder!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Difficulty Selection Modal -->
+    <div id="difficulty-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Zorluk Seç</h3>
+                <button class="modal-close" id="btn-close-difficulty">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>AI rakibinin zorluk seviyesini seç:</p>
+                <div class="difficulty-buttons">
+                    <button id="btn-difficulty-easy" class="btn btn-difficulty easy">
+                        <span class="difficulty-icon">😊</span>
+                        <span class="difficulty-name">Kolay</span>
+                        <span class="difficulty-desc">Başlangıç için ideal</span>
+                    </button>
+                    <button id="btn-difficulty-medium" class="btn btn-difficulty medium">
+                        <span class="difficulty-icon">🤔</span>
+                        <span class="difficulty-name">Orta</span>
+                        <span class="difficulty-desc">Dengeli zorluk</span>
+                    </button>
+                    <button id="btn-difficulty-hard" class="btn btn-difficulty hard">
+                        <span class="difficulty-icon">😈</span>
+                        <span class="difficulty-name">Zor</span>
+                        <span class="difficulty-desc">Gerçek bir meydan okuma</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -323,6 +389,7 @@
     <script src="js/firebase-config.js"></script>
     <script src="js/sound.js"></script>
     <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
     <script src="js/multiplayer.js"></script>
     <script src="js/app.js"></script>
 </body>

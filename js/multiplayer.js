@@ -18,7 +18,9 @@ class MultiplayerManager {
         this.onTurnChange = null;
         this.onMismatchUpdate = null;
         this.onPlayAgainRequest = null;
+        this.onGameRestart = null;
         this.onRoomClosed = null;
+        this.onGridSizeChange = null; // Called when any player changes grid selection
     }
 
     // Generate unique player ID
@@ -45,6 +47,7 @@ class MultiplayerManager {
             flippedCards: [],
             matchedPairs: [],
             scores: { host: 0, guest: 0 },
+            gridSelections: { host: null, guest: null },
             createdAt: firebase.database.ServerValue.TIMESTAMP,
             lastActivity: firebase.database.ServerValue.TIMESTAMP
         };
@@ -206,6 +209,30 @@ class MultiplayerManager {
                 this.onPlayAgainRequest();
             }
         });
+
+        // Listen for game restart (when host resets the game)
+        this.roomRef.child('status').on('value', (snapshot) => {
+            const status = snapshot.val();
+
+            // If status changes to 'playing' and we're on result screen, it means game restarted
+            if (status === 'playing' && !this.isHost && this.onGameRestart) {
+                // Get the new cards
+                this.roomRef.child('cards').once('value', (cardsSnapshot) => {
+                    const cards = cardsSnapshot.val();
+                    if (cards) {
+                        this.onGameRestart(cards);
+                    }
+                });
+            }
+        });
+
+        // Listen for grid size selections
+        this.roomRef.child('gridSelections').on('value', (snapshot) => {
+            const selections = snapshot.val();
+            if (selections && this.onGridSizeChange) {
+                this.onGridSizeChange(selections);
+            }
+        });
     }
 
     // Setup presence (disconnect handling)
@@ -308,6 +335,39 @@ class MultiplayerManager {
             });
         } catch (error) {
             console.error('Error syncing mismatch:', error);
+        }
+    }
+
+    // Sync grid size selection
+    async syncGridSize(gridSize) {
+        try {
+            const key = this.isHost ? 'gridSelections/host' : 'gridSelections/guest';
+            await this.roomRef.child(key).set(gridSize);
+        } catch (error) {
+            console.error('Error syncing grid size:', error);
+        }
+    }
+
+    // Start game with selected grid size
+    async startGameWithGridSize(gridSize) {
+        if (!this.isHost) return;
+
+        try {
+            const cards = game.generateCards(gridSize);
+            await this.roomRef.update({
+                cards: cards,
+                status: 'playing',
+                currentTurn: 'host',
+                flippedCards: [],
+                matchedPairs: [],
+                scores: { host: 0, guest: 0 },
+                gridSelections: { host: null, guest: null },
+                lastActivity: firebase.database.ServerValue.TIMESTAMP
+            });
+            return cards;
+        } catch (error) {
+            console.error('Error starting game:', error);
+            return null;
         }
     }
 

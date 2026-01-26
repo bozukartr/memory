@@ -16,7 +16,8 @@ class App {
         this.modals = {
             join: document.getElementById('join-modal'),
             settings: document.getElementById('settings-modal'),
-            howto: document.getElementById('howto-modal')
+            howto: document.getElementById('howto-modal'),
+            difficulty: document.getElementById('difficulty-modal')
         };
 
         // Elements
@@ -66,6 +67,11 @@ class App {
 
     setupEventListeners() {
         // Menu buttons
+        document.getElementById('btn-single-player').addEventListener('click', () => {
+            soundManager.playClick();
+            this.showModal('difficulty');
+        });
+
         document.getElementById('btn-create-room').addEventListener('click', () => {
             soundManager.playClick();
             this.createRoom();
@@ -74,6 +80,27 @@ class App {
         document.getElementById('btn-join-room').addEventListener('click', () => {
             soundManager.playClick();
             this.showModal('join');
+        });
+
+        // Difficulty modal
+        document.getElementById('btn-close-difficulty').addEventListener('click', () => {
+            soundManager.playClick();
+            this.hideModal('difficulty');
+        });
+
+        document.getElementById('btn-difficulty-easy').addEventListener('click', () => {
+            soundManager.playClick();
+            this.startSinglePlayerGame('easy');
+        });
+
+        document.getElementById('btn-difficulty-medium').addEventListener('click', () => {
+            soundManager.playClick();
+            this.startSinglePlayerGame('medium');
+        });
+
+        document.getElementById('btn-difficulty-hard').addEventListener('click', () => {
+            soundManager.playClick();
+            this.startSinglePlayerGame('hard');
         });
 
         document.getElementById('btn-settings').addEventListener('click', () => {
@@ -94,6 +121,15 @@ class App {
 
         document.getElementById('btn-copy-code').addEventListener('click', () => {
             this.copyRoomCode();
+        });
+
+        // Grid size selection
+        document.querySelectorAll('.grid-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                soundManager.playClick();
+                const size = btn.dataset.size;
+                this.selectGridSize(size);
+            });
         });
 
         // Game screen - leave button
@@ -229,6 +265,14 @@ class App {
             this.showToast('Rakip tekrar oynamak istiyor!');
         };
 
+        // When host restarts the game, guest automatically joins
+        multiplayerManager.onGameRestart = (cards) => {
+            soundManager.playNotification();
+            this.showToast('Oyun yeniden başlıyor!');
+            game.initializeGame(cards, false); // false = guest
+            this.showScreen('game');
+        };
+
         multiplayerManager.onRoomClosed = () => {
             // Room was deleted (host left)
             if (!multiplayerManager.isHost) {
@@ -237,6 +281,17 @@ class App {
                 game.reset();
                 this.resetWaitingRoomUI();
                 this.showScreen('menu');
+            }
+        };
+
+        // Grid size selection callback
+        multiplayerManager.onGridSizeChange = (selections) => {
+            this.updateGridSelectionUI(selections);
+
+            // Check if both players selected the same size
+            if (selections.host && selections.guest && selections.host === selections.guest) {
+                // Match! Start game
+                this.startMatchedGame(selections.host);
             }
         };
     }
@@ -363,6 +418,101 @@ class App {
             <span class="player-status ready">✓</span>
         `;
         this.updateWaitingRoom(false);
+        this.resetGridUI();
+    }
+
+    // Grid size selection methods
+    selectGridSize(size) {
+        // Sync with Firebase
+        multiplayerManager.syncGridSize(size);
+
+        // Update local UI immediately
+        document.querySelectorAll('.grid-option').forEach(btn => {
+            btn.classList.remove('selected');
+            if (btn.dataset.size === size) {
+                btn.classList.add('selected');
+            }
+        });
+    }
+
+    updateGridSelectionUI(selections) {
+        const sizes = ['4x4', '6x6', '8x8'];
+
+        sizes.forEach(size => {
+            const hostVote = document.getElementById(`vote-${size}-host`);
+            const guestVote = document.getElementById(`vote-${size}-guest`);
+            const option = document.querySelector(`.grid-option[data-size="${size}"]`);
+
+            // Update vote indicators
+            if (hostVote) {
+                hostVote.classList.toggle('active', selections.host === size);
+            }
+            if (guestVote) {
+                guestVote.classList.toggle('active', selections.guest === size);
+            }
+
+            // Update matched state
+            if (option) {
+                option.classList.remove('matched', 'selected');
+                if (selections.host === size && selections.guest === size) {
+                    option.classList.add('matched');
+                } else if (multiplayerManager.isHost && selections.host === size) {
+                    option.classList.add('selected');
+                } else if (!multiplayerManager.isHost && selections.guest === size) {
+                    option.classList.add('selected');
+                }
+            }
+        });
+
+        // Update status text
+        const statusEl = document.getElementById('grid-match-status');
+        if (selections.host && selections.guest) {
+            if (selections.host === selections.guest) {
+                statusEl.textContent = '✓ Eşleşti! Oyun başlıyor...';
+                statusEl.classList.add('matched');
+            } else {
+                statusEl.textContent = 'Farklı seçimler - Aynı boyutu seçin';
+                statusEl.classList.remove('matched');
+            }
+        } else if (selections.host || selections.guest) {
+            statusEl.textContent = 'Rakibin seçmesini bekle...';
+            statusEl.classList.remove('matched');
+        } else {
+            statusEl.textContent = 'Bir boyut seçin';
+            statusEl.classList.remove('matched');
+        }
+    }
+
+    async startMatchedGame(gridSize) {
+        soundManager.playNotification();
+        this.showToast('Boyut eşleşti! Oyun başlıyor...');
+
+        // Small delay for effect
+        await new Promise(r => setTimeout(r, 1000));
+
+        if (multiplayerManager.isHost) {
+            // Host generates and starts the game
+            const cards = await multiplayerManager.startGameWithGridSize(gridSize);
+            if (cards) {
+                game.initializeGame(cards, true);
+                this.showScreen('game');
+            }
+        }
+        // Guest will receive the game start via onGameStart callback
+    }
+
+    resetGridUI() {
+        document.querySelectorAll('.grid-option').forEach(btn => {
+            btn.classList.remove('selected', 'matched');
+        });
+        document.querySelectorAll('.vote').forEach(vote => {
+            vote.classList.remove('active');
+        });
+        const statusEl = document.getElementById('grid-match-status');
+        if (statusEl) {
+            statusEl.textContent = 'Bir boyut seçin';
+            statusEl.classList.remove('matched');
+        }
     }
 
     // Confirm leave during game
@@ -370,11 +520,47 @@ class App {
         // Simple confirm - in a real app you'd use a modal
         this.showToast('Oyundan ayrılıyorsun...');
         setTimeout(async () => {
-            await multiplayerManager.leaveRoom();
-            game.reset();
+            if (game.isSinglePlayer) {
+                game.reset();
+            } else {
+                await multiplayerManager.leaveRoom();
+                game.reset();
+            }
             this.resetWaitingRoomUI();
             this.showScreen('menu');
         }, 500);
+    }
+
+    // Start single player game
+    startSinglePlayerGame(difficulty) {
+        this.hideModal('difficulty');
+
+        // Generate cards
+        const cards = game.generateCards();
+
+        // Update room code display for single player
+        document.getElementById('game-room-code-text').textContent = 'AI-' + difficulty.toUpperCase();
+
+        // Update opponent label to show AI
+        const opponentLabel = document.querySelector('.player-score.opponent .score-label');
+        if (opponentLabel) {
+            opponentLabel.textContent = 'AI';
+        }
+
+        // Initialize game in single player mode
+        game.initializeGame(cards, true, true, difficulty);
+
+        this.showScreen('game');
+        this.showToast('Oyun başladı! Zorluk: ' + this.getDifficultyName(difficulty));
+    }
+
+    getDifficultyName(difficulty) {
+        const names = {
+            'easy': 'Kolay',
+            'medium': 'Orta',
+            'hard': 'Zor'
+        };
+        return names[difficulty] || difficulty;
     }
 
     copyRoomCode() {

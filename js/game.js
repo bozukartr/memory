@@ -3,8 +3,20 @@
 
 class MemoryGame {
     constructor() {
-        // Card emojis (8 pairs)
-        this.cardEmojis = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍒', '🥝', '🍑'];
+        // Extended card emojis (32 pairs for up to 8x8 grid)
+        this.allEmojis = [
+            // Fruits (8)
+            '🍎', '🍊', '🍋', '🍇', '🍓', '🍒', '🥝', '🍑',
+            // Animals (8)
+            '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+            // Food (8)
+            '🍕', '🍔', '🌮', '🍦', '🍩', '🧁', '🍪', '🎂',
+            // Objects (8)
+            '⭐', '🌙', '☀️', '🌈', '❤️', '💎', '🎈', '🎁'
+        ];
+
+        // Current grid size
+        this.gridSize = '4x4';
 
         // Game state
         this.cards = [];
@@ -15,6 +27,10 @@ class MemoryGame {
         this.isMyTurn = false;
         this.isProcessing = false;
         this.gameStartTime = null;
+
+        // Single player mode
+        this.isSinglePlayer = false;
+        this.aiDifficulty = 'medium';
 
         // Timer
         this.turnTimer = null;
@@ -32,12 +48,28 @@ class MemoryGame {
         this.gameStatus = document.getElementById('game-status');
     }
 
-    // Generate shuffled cards
-    generateCards() {
+    // Get number of pairs for grid size
+    getPairsForGrid(gridSize) {
+        const sizes = {
+            '4x4': 8,   // 16 cards
+            '6x6': 18,  // 36 cards
+            '8x8': 32   // 64 cards
+        };
+        return sizes[gridSize] || 8;
+    }
+
+    // Generate shuffled cards for specific grid size
+    generateCards(gridSize = '4x4') {
+        this.gridSize = gridSize;
+        const pairsNeeded = this.getPairsForGrid(gridSize);
         const cards = [];
 
+        // Shuffle all emojis and take needed amount
+        const shuffledEmojis = [...this.allEmojis].sort(() => Math.random() - 0.5);
+        const selectedEmojis = shuffledEmojis.slice(0, pairsNeeded);
+
         // Create pairs
-        this.cardEmojis.forEach((emoji, index) => {
+        selectedEmojis.forEach((emoji, index) => {
             cards.push({ id: index * 2, emoji, pairId: index });
             cards.push({ id: index * 2 + 1, emoji, pairId: index });
         });
@@ -52,7 +84,7 @@ class MemoryGame {
     }
 
     // Initialize game with cards (from host or received)
-    initializeGame(cards, isHost) {
+    initializeGame(cards, isHost, isSinglePlayer = false, aiDifficulty = 'medium') {
         this.cards = cards;
         this.flippedCards = [];
         this.matchedPairs = [];
@@ -61,6 +93,15 @@ class MemoryGame {
         this.isMyTurn = isHost;
         this.isProcessing = false;
         this.gameStartTime = Date.now();
+
+        // Single player settings
+        this.isSinglePlayer = isSinglePlayer;
+        this.aiDifficulty = aiDifficulty;
+
+        if (isSinglePlayer) {
+            window.aiPlayer.difficulty = aiDifficulty;
+            window.aiPlayer.reset();
+        }
 
         this.renderBoard();
         this.updateScores();
@@ -71,6 +112,15 @@ class MemoryGame {
     // Render the game board
     renderBoard() {
         this.boardElement.innerHTML = '';
+
+        // Determine grid size from cards count if not set
+        const cardCount = this.cards.length;
+        if (cardCount === 16) this.gridSize = '4x4';
+        else if (cardCount === 36) this.gridSize = '6x6';
+        else if (cardCount === 64) this.gridSize = '8x8';
+
+        // Set grid class for responsive layout
+        this.boardElement.className = 'game-board grid-' + this.gridSize;
 
         this.cards.forEach((card, index) => {
             const cardElement = document.createElement('div');
@@ -110,8 +160,13 @@ class MemoryGame {
             this.flippedCards.push(index);
             soundManager.playFlip();
 
-            // Sync with Firebase if local action
-            if (isLocal && window.multiplayerManager) {
+            // AI observes the card (learns from all flips)
+            if (this.isSinglePlayer && window.aiPlayer) {
+                window.aiPlayer.observeCard(index, this.cards[index].emoji);
+            }
+
+            // Sync with Firebase if local action (multiplayer only)
+            if (isLocal && !this.isSinglePlayer && window.multiplayerManager) {
                 window.multiplayerManager.syncFlippedCard(index);
             }
 
@@ -128,6 +183,14 @@ class MemoryGame {
         const [firstIndex, secondIndex] = this.flippedCards;
         const firstCard = this.cards[firstIndex];
         const secondCard = this.cards[secondIndex];
+
+        // Safety check for undefined cards
+        if (!firstCard || !secondCard) {
+            console.error('Invalid card indices:', firstIndex, secondIndex);
+            this.flippedCards = [];
+            this.isProcessing = false;
+            return;
+        }
 
         if (firstCard.pairId === secondCard.pairId) {
             // Match found!
@@ -192,8 +255,8 @@ class MemoryGame {
         firstCardElement.classList.add('shake');
         secondCardElement.classList.add('shake');
 
-        // Sync mismatch with Firebase if it's my turn
-        if (this.isMyTurn && window.multiplayerManager) {
+        // Sync mismatch with Firebase if it's my turn (multiplayer only)
+        if (this.isMyTurn && !this.isSinglePlayer && window.multiplayerManager) {
             window.multiplayerManager.syncMismatch([firstIndex, secondIndex]);
         }
 
@@ -214,26 +277,42 @@ class MemoryGame {
         this.currentTurn = this.currentTurn === 'host' ? 'guest' : 'host';
 
         // Determine if it's my turn
-        const amHost = window.multiplayerManager?.isHost;
-        this.isMyTurn = (this.currentTurn === 'host' && amHost) ||
-            (this.currentTurn === 'guest' && !amHost);
+        if (this.isSinglePlayer) {
+            // In single player: host = player, guest = AI
+            this.isMyTurn = (this.currentTurn === 'host');
+        } else {
+            const amHost = window.multiplayerManager?.isHost;
+            this.isMyTurn = (this.currentTurn === 'host' && amHost) ||
+                (this.currentTurn === 'guest' && !amHost);
+        }
 
         this.updateTurnDisplay();
         soundManager.playTurnChange();
 
-        // Sync turn change
-        if (window.multiplayerManager) {
+        // Sync turn change (multiplayer only)
+        if (!this.isSinglePlayer && window.multiplayerManager) {
             window.multiplayerManager.syncTurn(this.currentTurn);
         }
 
         this.resetTurnTimer();
+
+        // Trigger AI turn if it's AI's turn
+        if (this.isSinglePlayer && !this.isMyTurn) {
+            this.triggerAITurn();
+        }
     }
 
     // Update turn display
     updateTurnDisplay() {
-        const amHost = window.multiplayerManager?.isHost;
-        const isMyTurn = (this.currentTurn === 'host' && amHost) ||
-            (this.currentTurn === 'guest' && !amHost);
+        let isMyTurn;
+
+        if (this.isSinglePlayer) {
+            isMyTurn = (this.currentTurn === 'host');
+        } else {
+            const amHost = window.multiplayerManager?.isHost;
+            isMyTurn = (this.currentTurn === 'host' && amHost) ||
+                (this.currentTurn === 'guest' && !amHost);
+        }
 
         this.isMyTurn = isMyTurn;
 
@@ -246,20 +325,57 @@ class MemoryGame {
             this.yourTurnIndicator.classList.remove('active');
             this.opponentTurnIndicator.classList.add('active');
             this.gameStatus.className = 'game-status opponent-turn';
-            this.gameStatus.innerHTML = '<span>Rakibin oynuyor...</span>';
+            this.gameStatus.innerHTML = this.isSinglePlayer ? '<span>AI düşünüyor...</span>' : '<span>Rakibin oynuyor...</span>';
         }
     }
 
     // Update scores display
     updateScores() {
-        const amHost = window.multiplayerManager?.isHost;
-
-        if (amHost) {
+        if (this.isSinglePlayer) {
             this.yourScoreElement.textContent = this.scores.host;
             this.opponentScoreElement.textContent = this.scores.guest;
         } else {
-            this.yourScoreElement.textContent = this.scores.guest;
-            this.opponentScoreElement.textContent = this.scores.host;
+            const amHost = window.multiplayerManager?.isHost;
+            if (amHost) {
+                this.yourScoreElement.textContent = this.scores.host;
+                this.opponentScoreElement.textContent = this.scores.guest;
+            } else {
+                this.yourScoreElement.textContent = this.scores.guest;
+                this.opponentScoreElement.textContent = this.scores.host;
+            }
+        }
+    }
+
+    // Trigger AI turn
+    async triggerAITurn() {
+        if (!this.isSinglePlayer || !window.aiPlayer) return;
+
+        // AI picks first card
+        const firstCardIndex = await window.aiPlayer.makeMove(
+            this.boardElement,
+            true,
+            null,
+            this.cards.map(c => c.emoji)
+        );
+
+        if (firstCardIndex === null || this.isMyTurn) return;
+
+        this.flipCard(firstCardIndex, false);
+
+        // Wait a bit, then AI picks second card
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        if (this.isMyTurn) return; // Turn might have changed
+
+        const secondCardIndex = await window.aiPlayer.makeMove(
+            this.boardElement,
+            false,
+            firstCardIndex,
+            this.cards.map(c => c.emoji)
+        );
+
+        if (secondCardIndex !== null) {
+            this.flipCard(secondCardIndex, false);
         }
     }
 

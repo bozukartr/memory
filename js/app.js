@@ -210,13 +210,9 @@ class App {
     setupMultiplayerCallbacks() {
         multiplayerManager.onOpponentJoined = () => {
             soundManager.playNotification();
-            this.showToast('Rakip katıldı!');
+            this.showToast('Rakip katıldı! Grid boyutu seçin.');
             this.updateWaitingRoom(true);
-
-            // Start game after a short delay
-            setTimeout(() => {
-                this.startGame();
-            }, 1500);
+            // Don't auto-start - wait for grid size selection match
         };
 
         multiplayerManager.onOpponentLeft = () => {

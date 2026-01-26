@@ -311,6 +311,11 @@ class MultiplayerManager {
 
     // Sync turn change
     async syncTurn(newTurn) {
+        if (!this.roomRef) {
+            console.warn('syncTurn called but roomRef is null');
+            return;
+        }
+
         try {
             await this.roomRef.update({
                 currentTurn: newTurn,

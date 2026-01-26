@@ -274,9 +274,13 @@ class MemoryGame {
 
     // Switch turn
     switchTurn() {
+        // Determine who should sync the turn change
+        // Only the player whose turn just ended should sync to avoid race conditions
+        const wasMyTurn = this.isMyTurn;
+
         this.currentTurn = this.currentTurn === 'host' ? 'guest' : 'host';
 
-        // Determine if it's my turn
+        // Determine if it's my turn now
         if (this.isSinglePlayer) {
             // In single player: host = player, guest = AI
             this.isMyTurn = (this.currentTurn === 'host');
@@ -289,8 +293,8 @@ class MemoryGame {
         this.updateTurnDisplay();
         soundManager.playTurnChange();
 
-        // Sync turn change (multiplayer only)
-        if (!this.isSinglePlayer && window.multiplayerManager) {
+        // Sync turn change (multiplayer only) - only from the player who just played
+        if (!this.isSinglePlayer && window.multiplayerManager && wasMyTurn) {
             window.multiplayerManager.syncTurn(this.currentTurn);
         }
 
@@ -461,6 +465,18 @@ class MemoryGame {
 
     // External updates from opponent
     onOpponentFlip(index) {
+        // Safety check - ensure game is initialized
+        if (!this.cards || this.cards.length === 0) {
+            console.warn('onOpponentFlip called before game initialized');
+            return;
+        }
+
+        // Validate index
+        if (index < 0 || index >= this.cards.length) {
+            console.error('Invalid flip index:', index);
+            return;
+        }
+
         if (!this.flippedCards.includes(index)) {
             this.flipCard(index, false);
         }
@@ -484,8 +500,9 @@ class MemoryGame {
         this.isProcessing = false;
         this.resetTurnTimer();
 
-        // Check game end
-        if (this.matchedPairs.length === this.cardEmojis.length) {
+        // Check game end - use actual pairs count
+        const totalPairs = this.cards.length / 2;
+        if (this.matchedPairs.length === totalPairs) {
             this.endGame();
         }
     }

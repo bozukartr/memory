@@ -2,12 +2,16 @@
     "name": "Memory Match",
     "short_name": "MemoryMatch",
     "description": "Multiplayer Memory Card Game - Firebase ile gerçek zamanlı çoklu oyunculu hafıza kartı oyunu",
-    "start_url": "/",
+    "start_url": "./index.html",
+    "scope": "./",
     "display": "standalone",
     "orientation": "portrait",
     "background_color": "#0f0f1a",
     "theme_color": "#1a1a2e",
-    "categories": ["games", "entertainment"],
+    "categories": [
+        "games",
+        "entertainment"
+    ],
     "icons": [
         {
             "src": "assets/icons/icon-72.png",

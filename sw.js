@@ -1,19 +1,19 @@
 // Service Worker for Memory Match PWA
 // ====================================
 
-const CACHE_NAME = 'memory-match-v1';
+const CACHE_NAME = 'memory-match-v2';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/css/style.css',
-    '/js/firebase-config.js',
-    '/js/sound.js',
-    '/js/game.js',
-    '/js/multiplayer.js',
-    '/js/app.js',
-    '/manifest.json',
-    '/assets/icons/icon-192.png',
-    '/assets/icons/icon-512.png'
+    './',
+    './index.html',
+    './css/style.css',
+    './js/firebase-config.js',
+    './js/sound.js',
+    './js/game.js',
+    './js/multiplayer.js',
+    './js/app.js',
+    './manifest.json',
+    './assets/icons/icon-192.png',
+    './assets/icons/icon-512.png'
 ];
 
 // Install event - cache assets
@@ -93,7 +93,7 @@ self.addEventListener('fetch', (event) => {
 
                         // Return offline page for navigation requests
                         if (event.request.mode === 'navigate') {
-                            return caches.match('/index.html');
+                            return caches.match('./index.html');
                         }
 
                         return new Response('Offline', {

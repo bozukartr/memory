@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description"
+        content="Multiplayer Memory Card Game - Firebase ile gerçek zamanlı çoklu oyunculu hafıza kartı oyunu">
+
+    <title>Memory Match</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="screen active">
+        <div class="splash-background">
+            <div class="splash-particles">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="splash-glow"></div>
+        </div>
+
+        <div class="splash-content">
+            <div class="splash-cards">
+                <div class="splash-card card-1">🍎</div>
+                <div class="splash-card card-2">🍊</div>
+                <div class="splash-card card-3">🍋</div>
+            </div>
+
+            <div class="logo-container">
+                <div class="logo-icon-wrapper">
+                    <div class="logo-icon-ring"></div>
+                    <div class="logo-icon">🧠</div>
+                </div>
+                <h1 class="logo-text">Memory<span>Match</span></h1>
+                <p class="logo-tagline">Hafızanı test et!</p>
+            </div>
+
+            <div class="loader-container">
+                <div class="loader">
+                    <div class="loader-bar"></div>
+                </div>
+                <span class="loader-text">Yükleniyor...</span>
+            </div>
+        </div>
+
+        <div class="splash-footer">
+            <p>Multiplayer Memory Game</p>
+        </div>
+    </div>
+
+    <!-- Menu Screen -->
+    <div id="menu-screen" class="screen">
+        <div class="menu-container">
+            <div class="menu-header">
+                <div class="logo-icon small">🧠</div>
+                <h1>Memory<span>Match</span></h1>
+            </div>
+
+            <div class="menu-buttons">
+                <button id="btn-create-room" class="btn btn-primary">
+                    <span class="btn-icon">🎮</span>
+                    <span class="btn-text">Oda Oluştur</span>
+                </button>
+                <button id="btn-join-room" class="btn btn-secondary">
+                    <span class="btn-icon">🚪</span>
+                    <span class="btn-text">Odaya Katıl</span>
+                </button>
+            </div>
+
+            <div class="menu-footer">
+                <button id="btn-settings" class="btn-icon-only">⚙️</button>
+                <button id="btn-how-to-play" class="btn-icon-only">❓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Room Screen -->
+    <div id="waiting-screen" class="screen">
+        <div class="waiting-container">
+            <div class="waiting-header">
+                <button id="btn-leave-room" class="btn-back">←</button>
+                <h2>Bekleme Odası</h2>
+            </div>
+
+            <div class="room-code-display">
+                <p>Oda Kodu</p>
+                <div class="code-box">
+                    <span id="room-code-text">-----</span>
+                    <button id="btn-copy-code" class="btn-copy">📋</button>
+                </div>
+            </div>
+
+            <div class="players-list">
+                <div class="player-slot" id="player1-slot">
+                    <div class="player-avatar">👤</div>
+                    <span class="player-name">Sen (Host)</span>
+                    <span class="player-status ready">✓</span>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="player-slot waiting" id="player2-slot">
+                    <div class="player-avatar">❓</div>
+                    <span class="player-name">Rakip bekleniyor...</span>
+                    <div class="waiting-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="waiting-info">
+                <p>Arkadaşına oda kodunu gönder!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div id="join-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Odaya Katıl</h3>
+                <button class="modal-close" id="btn-close-join">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>5 haneli oda kodunu gir:</p>
+                <div class="code-input-container">
+                    <input type="text" id="join-code-input" maxlength="5" placeholder="00000" inputmode="numeric"
+                        pattern="[0-9]*">
+                </div>
+                <button id="btn-confirm-join" class="btn btn-primary" disabled>
+                    <span class="btn-text">Katıl</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-container">
+            <!-- Game Header -->
+            <div class="game-header">
+                <button id="btn-leave-game" class="btn-back">←</button>
+                <div class="game-room-code">
+                    <span>Oda:</span>
+                    <span id="game-room-code-text">-----</span>
+                </div>
+                <div class="game-header-spacer"></div>
+            </div>
+
+            <!-- Game HUD -->
+            <div class="game-hud">
+                <div class="player-score you">
+                    <div class="score-avatar">😊</div>
+                    <div class="score-info">
+                        <span class="score-label">Sen</span>
+                        <span class="score-value" id="your-score">0</span>
+                    </div>
+                    <div class="turn-indicator" id="your-turn"></div>
+                </div>
+
+                <div class="game-timer">
+                    <div class="timer-circle">
+                        <svg viewBox="0 0 36 36">
+                            <path class="timer-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="timer-progress" id="timer-progress"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <span class="timer-text" id="timer-text">30</span>
+                    </div>
+                </div>
+
+                <div class="player-score opponent">
+                    <div class="turn-indicator" id="opponent-turn"></div>
+                    <div class="score-info">
+                        <span class="score-label">Rakip</span>
+                        <span class="score-value" id="opponent-score">0</span>
+                    </div>
+                    <div class="score-avatar">😈</div>
+                </div>
+            </div>
+
+            <!-- Game Board -->
+            <div class="game-board" id="game-board">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+
+            <!-- Game Status -->
+            <div class="game-status" id="game-status">
+                <span>Senin sıran!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="screen">
+        <div class="result-container">
+            <div class="result-header" id="result-header">
+                <div class="result-icon">🏆</div>
+                <h2 id="result-title">Kazandın!</h2>
+            </div>
+
+            <div class="result-scores">
+                <div class="final-score you">
+                    <span class="final-label">Sen</span>
+                    <span class="final-value" id="final-your-score">0</span>
+                </div>
+                <div class="score-divider">-</div>
+                <div class="final-score opponent">
+                    <span class="final-label">Rakip</span>
+                    <span class="final-value" id="final-opponent-score">0</span>
+                </div>
+            </div>
+
+            <div class="result-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">⏱️</span>
+                    <span class="stat-value" id="stat-time">2:34</span>
+                    <span class="stat-label">Süre</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🎯</span>
+                    <span class="stat-value" id="stat-matches">4</span>
+                    <span class="stat-label">Eşleşme</span>
+                </div>
+            </div>
+
+            <div class="result-buttons">
+                <button id="btn-play-again" class="btn btn-primary">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">Tekrar Oyna</span>
+                </button>
+                <button id="btn-back-menu" class="btn btn-secondary">
+                    <span class="btn-icon">🏠</span>
+                    <span class="btn-text">Ana Menü</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ayarlar</h3>
+                <button class="modal-close" id="btn-close-settings">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <span class="setting-label">🔊 Ses Efektleri</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="toggle-sound" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">📳 Titreşim</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="toggle-vibration" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">🎵 Müzik</span>
+                    <label class="toggle">
+                        <input type="checkbox" id="toggle-music">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div id="howto-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nasıl Oynanır?</h3>
+                <button class="modal-close" id="btn-close-howto">✕</button>
+            </div>
+            <div class="modal-body howto-content">
+                <div class="howto-step">
+                    <span class="step-number">1</span>
+                    <p>Oda oluştur veya arkadaşının odasına katıl</p>
+                </div>
+                <div class="howto-step">
+                    <span class="step-number">2</span>
+                    <p>Sıran geldiğinde 2 kart aç</p>
+                </div>
+                <div class="howto-step">
+                    <span class="step-number">3</span>
+                    <p>Kartlar eşleşirse puan kazan ve tekrar oyna</p>
+                </div>
+                <div class="howto-step">
+                    <span class="step-number">4</span>
+                    <p>En çok eşleşmeyi bulan kazanır!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- App Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/multiplayer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

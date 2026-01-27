@@ -628,12 +628,17 @@ class App {
     }
 
     async playAgain() {
+        // Use the same grid size as the current game
+        const currentGridSize = game.gridSize || '4x4';
+
         if (multiplayerManager.isHost) {
-            const cards = game.generateCards();
+            // Host generates cards with same grid size and resets game
+            const cards = game.generateCards(currentGridSize);
             await multiplayerManager.resetGame(cards);
             game.initializeGame(cards, true);
             this.showScreen('game');
         } else {
+            // Guest requests play again - Host will receive notification
             await multiplayerManager.requestPlayAgain();
             this.showToast('İstek gönderildi');
         }

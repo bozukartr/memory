@@ -278,6 +278,9 @@ class MemoryGame {
         firstCardElement.classList.add('shake');
         secondCardElement.classList.add('shake');
 
+        // Store whether it's my turn before timeout
+        const wasMyTurn = this.isMyTurn;
+
         // Sync mismatch with Firebase if it's my turn (multiplayer only)
         if (this.isMyTurn && !this.isSinglePlayer && window.multiplayerManager) {
             window.multiplayerManager.syncMismatch([firstIndex, secondIndex]);
@@ -290,8 +293,11 @@ class MemoryGame {
             this.flippedCards = [];
             this.isProcessing = false;
 
-            // Switch turn
-            this.switchTurn();
+            // Switch turn - only if it was my turn or single player
+            // In multiplayer, opponent receives turn change via onTurnChange callback
+            if (wasMyTurn || this.isSinglePlayer) {
+                this.switchTurn();
+            }
         }, 800);
     }
 

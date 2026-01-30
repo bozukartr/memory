@@ -5,393 +5,294 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description"
-        content="Multiplayer Memory Card Game - Firebase ile gerçek zamanlı çoklu oyunculu hafıza kartı oyunu">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Modern Memory Card Game - Multiplayer">
+    <title>Memory Game</title>
 
-    <title>Memory Match</title>
-
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <!-- Splash Screen -->
-    <div id="splash-screen" class="screen active">
-        <div class="splash-background">
-            <div class="splash-particles">
-                <span></span><span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span><span></span>
-            </div>
-            <div class="splash-glow"></div>
-        </div>
-
+    <div id="splash-screen" class="splash-screen active">
         <div class="splash-content">
-            <div class="splash-cards">
-                <div class="splash-card card-1">🍎</div>
-                <div class="splash-card card-2">🍊</div>
-                <div class="splash-card card-3">🍋</div>
-            </div>
-
-            <div class="logo-container">
-                <div class="logo-icon-wrapper">
-                    <div class="logo-icon-ring"></div>
-                    <div class="logo-icon">🧠</div>
-                </div>
-                <h1 class="logo-text">Memory<span>Match</span></h1>
-                <p class="logo-tagline">Hafızanı test et!</p>
-            </div>
-
-            <div class="loader-container">
-                <div class="loader">
-                    <div class="loader-bar"></div>
-                </div>
-                <span class="loader-text">Yükleniyor...</span>
-            </div>
-        </div>
-
-        <div class="splash-footer">
-            <p>Multiplayer Memory Game</p>
-        </div>
-    </div>
-
-    <!-- Menu Screen -->
-    <div id="menu-screen" class="screen">
-        <div class="menu-container">
-            <div class="menu-header">
-                <div class="logo-icon small">🧠</div>
-                <h1>Memory<span>Match</span></h1>
-            </div>
-
-            <div class="menu-buttons">
-                <button id="btn-single-player" class="btn btn-primary">
-                    <span class="btn-icon">🤖</span>
-                    <span class="btn-text">Tek Kişilik</span>
-                </button>
-                <button id="btn-create-room" class="btn btn-secondary">
-                    <span class="btn-icon">🎮</span>
-                    <span class="btn-text">Oda Oluştur</span>
-                </button>
-                <button id="btn-join-room" class="btn btn-secondary">
-                    <span class="btn-icon">🚪</span>
-                    <span class="btn-text">Odaya Katıl</span>
-                </button>
-            </div>
-
-            <div class="menu-footer">
-                <button id="btn-settings" class="btn-icon-only">⚙️</button>
-                <button id="btn-how-to-play" class="btn-icon-only">❓</button>
+            <div class="splash-logo">🎮</div>
+            <h1 class="splash-title">RBK</h1>
+            <p class="splash-subtitle">GAMING</p>
+            <div class="splash-loader">
+                <div class="splash-bar"></div>
             </div>
         </div>
     </div>
 
-    <!-- Waiting Room Screen -->
-    <div id="waiting-screen" class="screen">
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen active splash-hidden">
+        <div class="start-container">
+            <div class="game-logo">🎴</div>
+            <h1 class="game-title">Memory</h1>
+            <p class="game-subtitle">Kartları eşleştir, hafızanı test et!</p>
+
+            <div class="mode-selection">
+                <button id="solo-btn" class="mode-btn">
+                    <span class="mode-icon">🎮</span>
+                    <span class="mode-text">Solo Oyna</span>
+                </button>
+                <button id="multiplayer-btn" class="mode-btn">
+                    <span class="mode-icon">👥</span>
+                    <span class="mode-text">Multiplayer</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solo Size Selection -->
+    <div id="solo-screen" class="screen">
+        <div class="start-container">
+            <button id="back-to-menu" class="back-btn">← Geri</button>
+            <h2 class="screen-title">Solo Oyun</h2>
+            <p class="difficulty-label">Zorluk Seviyesi</p>
+            <div class="size-options">
+                <button class="size-btn" data-size="4">
+                    <span class="grid-size">4×4</span>
+                    <span class="pair-count">8 çift</span>
+                </button>
+                <button class="size-btn" data-size="6">
+                    <span class="grid-size">6×6</span>
+                    <span class="pair-count">18 çift</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multiplayer Lobby -->
+    <div id="lobby-screen" class="screen">
+        <div class="start-container">
+            <button id="back-to-menu-2" class="back-btn">← Geri</button>
+            <h2 class="screen-title">Multiplayer</h2>
+
+            <div class="lobby-options">
+                <button id="create-room-btn" class="lobby-btn">
+                    <span class="lobby-icon">🏠</span>
+                    <span class="lobby-text">Oda Oluştur</span>
+                </button>
+
+                <div class="divider"><span>veya</span></div>
+
+                <div class="join-room-section">
+                    <input type="text" id="room-code-input" class="room-input" placeholder="Oda Kodu" maxlength="5"
+                        inputmode="numeric">
+                    <button id="join-room-btn" class="lobby-btn join-btn">
+                        <span class="lobby-icon">🚪</span>
+                        <span class="lobby-text">Katıl</span>
+                    </button>
+                </div>
+            </div>
+
+            <p id="lobby-error" class="error-text"></p>
+        </div>
+    </div>
+
+    <!-- Waiting Room -->
+    <div id="waiting-room-screen" class="screen">
         <div class="waiting-container">
-            <div class="waiting-header">
-                <button id="btn-leave-room" class="btn-back">←</button>
-                <h2>Bekleme Odası</h2>
-            </div>
+            <button id="leave-room-btn" class="back-btn">← Ayrıl</button>
 
             <div class="room-code-display">
-                <p>Oda Kodu</p>
-                <div class="code-box">
-                    <span id="room-code-text">-----</span>
-                    <button id="btn-copy-code" class="btn-copy">📋</button>
+                <span class="room-label">Oda Kodu</span>
+                <span id="display-room-code" class="room-code">12345</span>
+                <button id="copy-code-btn" class="copy-btn">📋</button>
+            </div>
+
+            <div class="players-section">
+                <div class="player-card host">
+                    <span class="player-icon">👑</span>
+                    <span class="player-name">Host</span>
+                    <span class="player-status ready">Hazır</span>
+                </div>
+                <div class="vs-text">VS</div>
+                <div id="guest-card" class="player-card guest">
+                    <span class="player-icon">⏳</span>
+                    <span class="player-name">Bekleniyor...</span>
+                    <span class="player-status"></span>
                 </div>
             </div>
 
-            <div class="players-list">
-                <div class="player-slot" id="player1-slot">
-                    <div class="player-avatar">👤</div>
-                    <span class="player-name">Sen (Host)</span>
-                    <span class="player-status ready">✓</span>
+            <!-- Host Controls -->
+            <div id="host-controls" class="host-controls hidden">
+                <p class="control-label">Board Boyutu</p>
+                <div class="size-toggle">
+                    <button class="toggle-btn active" data-size="4">4×4</button>
+                    <button class="toggle-btn" data-size="6">6×6</button>
                 </div>
-                <div class="vs-divider">VS</div>
-                <div class="player-slot waiting" id="player2-slot">
-                    <div class="player-avatar">❓</div>
-                    <span class="player-name">Rakip bekleniyor...</span>
-                    <div class="waiting-dots">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>
+                <button id="start-game-btn" class="start-btn disabled">
+                    🎮 Oyunu Başlat
+                </button>
+                <p id="start-hint" class="hint-text">Rakip hazır olunca başlatabilirsin</p>
             </div>
 
-            <!-- Grid Size Selector -->
-            <div class="grid-selector" id="grid-selector">
-                <p class="grid-selector-title">Oyun Alanı Seç</p>
-                <div class="grid-options">
-                    <button class="grid-option" data-size="4x4">
-                        <span class="grid-size">4×4</span>
-                        <span class="grid-cards">16 kart</span>
-                        <div class="grid-votes">
-                            <span class="vote host-vote" id="vote-4x4-host"></span>
-                            <span class="vote guest-vote" id="vote-4x4-guest"></span>
-                        </div>
-                    </button>
-                    <button class="grid-option" data-size="6x6">
-                        <span class="grid-size">6×6</span>
-                        <span class="grid-cards">36 kart</span>
-                        <div class="grid-votes">
-                            <span class="vote host-vote" id="vote-6x6-host"></span>
-                            <span class="vote guest-vote" id="vote-6x6-guest"></span>
-                        </div>
-                    </button>
-                    <button class="grid-option" data-size="8x8">
-                        <span class="grid-size">8×8</span>
-                        <span class="grid-cards">64 kart</span>
-                        <div class="grid-votes">
-                            <span class="vote host-vote" id="vote-8x8-host"></span>
-                            <span class="vote guest-vote" id="vote-8x8-guest"></span>
-                        </div>
-                    </button>
-                </div>
-                <p class="grid-match-status" id="grid-match-status">Boyut seçin</p>
-            </div>
-
-            <div class="waiting-info">
-                <p>Arkadaşına oda kodunu gönder!</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Difficulty Selection Modal -->
-    <div id="difficulty-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Zorluk Seç</h3>
-                <button class="modal-close" id="btn-close-difficulty">✕</button>
-            </div>
-            <div class="modal-body">
-                <p>AI rakibinin zorluk seviyesini seç:</p>
-                <div class="difficulty-buttons">
-                    <button id="btn-difficulty-easy" class="btn btn-difficulty easy">
-                        <span class="difficulty-icon">😊</span>
-                        <span class="difficulty-name">Kolay</span>
-                        <span class="difficulty-desc">Başlangıç için ideal</span>
-                    </button>
-                    <button id="btn-difficulty-medium" class="btn btn-difficulty medium">
-                        <span class="difficulty-icon">🤔</span>
-                        <span class="difficulty-name">Orta</span>
-                        <span class="difficulty-desc">Dengeli zorluk</span>
-                    </button>
-                    <button id="btn-difficulty-hard" class="btn btn-difficulty hard">
-                        <span class="difficulty-icon">😈</span>
-                        <span class="difficulty-name">Zor</span>
-                        <span class="difficulty-desc">Gerçek bir meydan okuma</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Join Room Modal -->
-    <div id="join-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Odaya Katıl</h3>
-                <button class="modal-close" id="btn-close-join">✕</button>
-            </div>
-            <div class="modal-body">
-                <p>5 haneli oda kodunu gir:</p>
-                <div class="code-input-container">
-                    <input type="text" id="join-code-input" maxlength="5" placeholder="00000" inputmode="numeric"
-                        pattern="[0-9]*">
-                </div>
-                <button id="btn-confirm-join" class="btn btn-primary" disabled>
-                    <span class="btn-text">Katıl</span>
+            <!-- Guest Controls -->
+            <div id="guest-controls" class="guest-controls hidden">
+                <button id="ready-btn" class="ready-btn">
+                    ✋ HAZIRIM
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Game Screen -->
+    <!-- Game Screen (Solo & Multiplayer) -->
     <div id="game-screen" class="screen">
-        <div class="game-container">
-            <!-- Game Header -->
-            <div class="game-header">
-                <button id="btn-leave-game" class="btn-back">←</button>
-                <div class="game-room-code">
-                    <span>Oda:</span>
-                    <span id="game-room-code-text">-----</span>
-                </div>
-                <div class="game-header-spacer"></div>
+        <!-- Solo Header -->
+        <div id="solo-header" class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-icon">⏱️</span>
+                <span id="timer" class="stat-value">00:00</span>
+                <span class="stat-label">Süre</span>
             </div>
-
-            <!-- Game HUD -->
-            <div class="game-hud">
-                <div class="player-score you">
-                    <div class="score-avatar">😊</div>
-                    <div class="score-info">
-                        <span class="score-label">Sen</span>
-                        <span class="score-value" id="your-score">0</span>
-                    </div>
-                    <div class="turn-indicator" id="your-turn"></div>
-                </div>
-
-                <div class="game-timer">
-                    <div class="timer-circle">
-                        <svg viewBox="0 0 36 36">
-                            <path class="timer-bg"
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path class="timer-progress" id="timer-progress"
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        </svg>
-                        <span class="timer-text" id="timer-text">30</span>
-                    </div>
-                </div>
-
-                <div class="player-score opponent">
-                    <div class="turn-indicator" id="opponent-turn"></div>
-                    <div class="score-info">
-                        <span class="score-label">Rakip</span>
-                        <span class="score-value" id="opponent-score">0</span>
-                    </div>
-                    <div class="score-avatar">😈</div>
-                </div>
+            <div class="stat-item">
+                <span class="stat-icon">👆</span>
+                <span id="moves" class="stat-value">0</span>
+                <span class="stat-label">Hamle</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-icon">✨</span>
+                <span id="matches" class="stat-value">0/0</span>
+                <span class="stat-label">Eşleşme</span>
+            </div>
+        </div>
 
-            <!-- Game Board -->
+        <!-- Multiplayer Header -->
+        <div id="mp-header" class="mp-stats-bar hidden">
+            <div class="mp-player you">
+                <span class="mp-player-label">Sen</span>
+                <span id="mp-your-score" class="mp-score">0</span>
+            </div>
+            <div class="mp-center">
+                <span id="mp-timer" class="mp-timer">10:00</span>
+                <span id="turn-indicator" class="turn-indicator">Senin Sıran</span>
+            </div>
+            <div class="mp-player opponent">
+                <span class="mp-player-label">Rakip</span>
+                <span id="mp-opponent-score" class="mp-score">0</span>
+            </div>
+        </div>
+
+        <div class="board-wrapper">
             <div class="game-board" id="game-board">
-                <!-- Cards will be generated by JavaScript -->
+                <!-- Cards generated by JS -->
             </div>
+        </div>
 
-            <!-- Game Status -->
-            <div class="game-status" id="game-status">
-                <span>Senin sıran!</span>
-            </div>
+        <div id="solo-footer" class="action-bar">
+            <button id="restart-btn" class="btn btn-primary">
+                🔄 Yeniden
+            </button>
+            <button id="menu-btn" class="btn btn-secondary">
+                🏠 Menü
+            </button>
+        </div>
+
+        <div id="mp-footer" class="action-bar hidden">
+            <button id="mp-leave-btn" class="btn btn-secondary">
+                🚪 Odadan Ayrıl
+            </button>
         </div>
     </div>
 
-    <!-- Result Screen -->
-    <div id="result-screen" class="screen">
-        <div class="result-container">
-            <div class="result-header" id="result-header">
-                <div class="result-icon">🏆</div>
-                <h2 id="result-title">Kazandın!</h2>
-            </div>
+    <!-- Solo Win Modal -->
+    <div id="win-modal" class="modal">
+        <div class="modal-box">
+            <div class="trophy-icon">🏆</div>
+            <h2 class="modal-title">Tebrikler!</h2>
+            <p class="modal-subtitle">Tüm kartları eşleştirdin!</p>
 
-            <div class="result-scores">
-                <div class="final-score you">
-                    <span class="final-label">Sen</span>
-                    <span class="final-value" id="final-your-score">0</span>
+            <div class="final-stats">
+                <div class="final-stat">
+                    <span id="final-time" class="final-stat-value">00:00</span>
+                    <span class="final-stat-label">Süre</span>
                 </div>
-                <div class="score-divider">-</div>
-                <div class="final-score opponent">
-                    <span class="final-label">Rakip</span>
-                    <span class="final-value" id="final-opponent-score">0</span>
-                </div>
-            </div>
-
-            <div class="result-stats">
-                <div class="stat-item">
-                    <span class="stat-icon">⏱️</span>
-                    <span class="stat-value" id="stat-time">2:34</span>
-                    <span class="stat-label">Süre</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">🎯</span>
-                    <span class="stat-value" id="stat-matches">4</span>
-                    <span class="stat-label">Eşleşme</span>
+                <div class="final-stat">
+                    <span id="final-moves" class="final-stat-value">0</span>
+                    <span class="final-stat-label">Hamle</span>
                 </div>
             </div>
 
-            <div class="result-buttons">
-                <button id="btn-play-again" class="btn btn-primary">
-                    <span class="btn-icon">🔄</span>
-                    <span class="btn-text">Tekrar Oyna</span>
+            <div class="modal-actions">
+                <button id="play-again-btn" class="btn btn-primary">
+                    🎮 Tekrar Oyna
                 </button>
-                <button id="btn-back-menu" class="btn btn-secondary">
-                    <span class="btn-icon">🏠</span>
-                    <span class="btn-text">Ana Menü</span>
+                <button id="change-size-btn" class="btn btn-secondary">
+                    📐 Boyut Değiştir
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Ayarlar</h3>
-                <button class="modal-close" id="btn-close-settings">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-item">
-                    <span class="setting-label">🔊 Ses Efektleri</span>
-                    <label class="toggle">
-                        <input type="checkbox" id="toggle-sound" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
+    <!-- Multiplayer End Modal -->
+    <div id="mp-end-modal" class="modal">
+        <div class="modal-box">
+            <div id="mp-result-icon" class="trophy-icon">🏆</div>
+            <h2 id="mp-result-title" class="modal-title">Kazandın!</h2>
+            <p id="mp-result-subtitle" class="modal-subtitle">Tebrikler!</p>
+
+            <div class="final-stats">
+                <div class="final-stat">
+                    <span id="mp-final-your-score" class="final-stat-value you-color">0</span>
+                    <span class="final-stat-label">Sen</span>
                 </div>
-                <div class="setting-item">
-                    <span class="setting-label">📳 Titreşim</span>
-                    <label class="toggle">
-                        <input type="checkbox" id="toggle-vibration" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <span class="setting-label">🎵 Müzik</span>
-                    <label class="toggle">
-                        <input type="checkbox" id="toggle-music">
-                        <span class="toggle-slider"></span>
-                    </label>
+                <div class="final-stat">
+                    <span id="mp-final-opponent-score" class="final-stat-value opponent-color">0</span>
+                    <span class="final-stat-label">Rakip</span>
                 </div>
             </div>
+
+            <!-- Confirmation status -->
+            <div id="mp-confirm-status" class="confirm-status">
+                <div id="mp-your-confirm" class="confirm-item">
+                    <span class="confirm-icon">⏳</span>
+                    <span>Sen</span>
+                </div>
+                <div id="mp-opponent-confirm" class="confirm-item">
+                    <span class="confirm-icon">⏳</span>
+                    <span>Rakip</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="mp-play-again-btn" class="btn btn-primary">
+                    🎮 Tekrar Oyna
+                </button>
+                <button id="mp-return-room-btn" class="btn btn-secondary">
+                    🏠 Odaya Dön
+                </button>
+            </div>
+            <p id="mp-confirm-hint" class="hint-text">Her iki oyuncu da onaylamalı</p>
         </div>
     </div>
 
-    <!-- How to Play Modal -->
-    <div id="howto-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Nasıl Oynanır?</h3>
-                <button class="modal-close" id="btn-close-howto">✕</button>
-            </div>
-            <div class="modal-body howto-content">
-                <div class="howto-step">
-                    <span class="step-number">1</span>
-                    <p>Oda oluştur veya arkadaşının odasına katıl</p>
-                </div>
-                <div class="howto-step">
-                    <span class="step-number">2</span>
-                    <p>Sıran geldiğinde 2 kart aç</p>
-                </div>
-                <div class="howto-step">
-                    <span class="step-number">3</span>
-                    <p>Kartlar eşleşirse puan kazan ve tekrar oyna</p>
-                </div>
-                <div class="howto-step">
-                    <span class="step-number">4</span>
-                    <p>En çok eşleşmeyi bulan kazanır!</p>
-                </div>
-            </div>
-        </div>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p id="loading-text">Bağlanıyor...</p>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <span id="toast-message"></span>
-    </div>
+    <script src="script.js" type="module"></script>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
-    <!-- App Scripts -->
-    <script src="js/firebase-config.js"></script>
-    <script src="js/sound.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/ai.js"></script>
-    <script src="js/multiplayer.js"></script>
-    <script src="js/app.js"></script>
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => { });
+        }
+    </script>
 </body>
 
 </html>

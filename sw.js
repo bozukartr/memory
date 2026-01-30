@@ -1,117 +1,56 @@
-// Service Worker for Memory Match PWA
-// ====================================
+/**
+ * Service Worker for Memory Card Game PWA
+ */
 
-const CACHE_NAME = 'memory-match-v3';
-const ASSETS_TO_CACHE = [
-    './',
-    './index.html',
-    './css/style.css',
-    './js/firebase-config.js',
-    './js/sound.js',
-    './js/game.js',
-    './js/ai.js',
-    './js/multiplayer.js',
-    './js/app.js',
-    './manifest.json',
-    './assets/icons/icon-192.png',
-    './assets/icons/icon-512.png'
+const CACHE_NAME = 'memory-game-v1';
+const ASSETS = [
+    '/',
+    '/index.html',
+    '/style.css',
+    '/script.js',
+    '/firebase-config.js',
+    '/multiplayer.js',
+    '/manifest.json'
 ];
 
-// Install event - cache assets
+// Install
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing...');
-
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[SW] Caching assets');
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
-            .then(() => {
-                console.log('[SW] Install complete');
-                return self.skipWaiting();
-            })
-            .catch((error) => {
-                console.error('[SW] Install failed:', error);
-            })
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS);
+        })
     );
+    self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating...');
-
     event.waitUntil(
-        caches.keys()
-            .then((cacheNames) => {
-                return Promise.all(
-                    cacheNames
-                        .filter((name) => name !== CACHE_NAME)
-                        .map((name) => {
-                            console.log('[SW] Deleting old cache:', name);
-                            return caches.delete(name);
-                        })
-                );
-            })
-            .then(() => {
-                console.log('[SW] Activate complete');
-                return self.clients.claim();
-            })
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+            );
+        })
     );
+    self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch - Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-    // Skip non-GET requests
-    if (event.request.method !== 'GET') return;
-
-    // Skip Firebase requests (need real-time data)
-    if (event.request.url.includes('firebase') ||
-        event.request.url.includes('gstatic')) {
+    // Skip non-GET requests and Firebase requests
+    if (event.request.method !== 'GET' || event.request.url.includes('firebase')) {
         return;
     }
 
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Clone response to cache
-                const responseClone = response.clone();
-
-                caches.open(CACHE_NAME)
-                    .then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
-
+                const clone = response.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, clone);
+                });
                 return response;
             })
-            .catch(() => {
-                // Network failed, try cache
-                return caches.match(event.request)
-                    .then((cachedResponse) => {
-                        if (cachedResponse) {
-                            return cachedResponse;
-                        }
-
-                        // Return offline page for navigation requests
-                        if (event.request.mode === 'navigate') {
-                            return caches.match('./index.html');
-                        }
-
-                        return new Response('Offline', {
-                            status: 503,
-                            statusText: 'Service Unavailable'
-                        });
-                    });
-            })
+            .catch(() => caches.match(event.request))
     );
-});
-
-// Handle background sync (for future features)
-self.addEventListener('sync', (event) => {
-    console.log('[SW] Sync event:', event.tag);
-});
-
-// Handle push notifications (for future features)
-self.addEventListener('push', (event) => {
-    console.log('[SW] Push event:', event.data?.text());
 });

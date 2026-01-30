@@ -2,15 +2,15 @@
  * Service Worker for Memory Card Game PWA
  */
 
-const CACHE_NAME = 'memory-game-v1';
+const CACHE_NAME = 'memory-game-v2';
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/firebase-config.js',
-    '/multiplayer.js',
-    '/manifest.json'
+    './',
+    './index.html',
+    './style.css',
+    './script.js',
+    './firebase-config.js',
+    './multiplayer.js',
+    './manifest.json'
 ];
 
 // Install
